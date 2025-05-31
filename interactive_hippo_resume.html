@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en" >
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Cute Hippo Themed Interactive Resume - ADITI</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Comic+Neue:wght@300;700&display=swap');
+
+    /* Reset and base */
+    *, *::before, *::after {
+      box-sizing: border-box;
+    }
+    body, html {
+      margin:0;
+      padding:0;
+      height:100%;
+      font-family: 'Comic Neue', cursive, sans-serif;
+      background: #b7d7e8;
+      color: #3a3a3a;
+      overflow-x: hidden;
+      scroll-behavior: smooth;
+      position: relative;
+    }
+
+    /* Canvas background for floating bubbles */
+    #bg-canvas {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      pointer-events: none;
+      z-index: -1;
+      background: linear-gradient(170deg, #c4e0e5, #91bad6);
+    }
+
+    /* Sidebar navigation */
+    :root {
+      --nav-width: 280px;
+      --cute-color-primary: #749bc2;
+      --cute-color-secondary: #a2c4db;
+      --cute-color-hover: #d2e7fb;
+      --cute-shadow: rgba(102, 140, 182, 0.4);
+    }
+
+    .sidebar-nav {
+      position: fixed;
+      top: 0; left: 0; bottom: 0;
+      width: var(--nav-width);
+      background: #d2e7fb;
+      border-right: 3px solid var(--cute-color-secondary);
+      box-shadow: inset -6px 0 20px var(--cute-shadow);
+      display: flex;
+      flex-direction: column;
+      padding: 2rem 1.6rem 3rem;
+      z-index: 1000;
+      border-radius: 0 50px 50px 0;
+      user-select: none;
+      transition: transform 0.35s ease;
+    }
+    .sidebar-nav.collapsed {
+      transform: translateX(calc(-100%));
+    }
+
+    /* Hippo SVG in sidebar header */
+    .sidebar-header {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin-bottom: 2.5rem;
+      gap: 12px;
+    }
+
+    .hippo-svg {
+      width: 120px;
+      height: 120px;
+      fill: var(--cute-color-primary);
+      filter: drop-shadow(0 3px 5px var(--cute-shadow));
+      animation: hippo-bounce 4s ease-in-out infinite;
+      position: relative;
+      z-index: 5;
+    }
+    @keyframes hippo-bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-12px);}
+    }
+
+    .name {
+      font-size: 2.2rem;
+      font-weight: 700;
+      color: #3a3a3a;
+      letter-spacing: 0.1em;
+      user-select: text;
+    }
+    .title {
+      font-weight: 400;
+      font-size: 1.1rem;
+      color: #5579a1;
+      font-style: italic;
+      user-select: text;
+      margin-top: -6px;
+      margin-bottom: 1rem;
+    }
+
+    /* Nav links */
+    .nav-links {
+      flex-grow: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+    .nav-links a {
+      background: white;
+      text-decoration: none;
+      color: var(--cute-color-primary);
+      font-weight: 600;
+      font-size: 1.1rem;
+      padding: 13px 18px;
+      border-radius: 30px;
+      box-shadow: 3px 5px 10px var(--cute-shadow);
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      border: 2.5px solid transparent;
+      transition: all 0.3s ease;
+      cursor: pointer;
+      outline-offset: 5px;
+      user-select: none;
+      position: relative;
+    }
+    .nav-links a svg {
+      width: 20px;
+      height: 20px;
+      fill: var(--cute-color-primary);
+      flex-shrink: 0;
+      user-select: none;
+      transition: fill 0.3s ease;
+    }
+    .nav-links a:hover,
+    .nav-links a:focus-visible {
+      background: var(--cute-color-secondary);
+      border-color: var(--cute-color-primary);
+      color: #fff;
+      outline: none;
+      box-shadow: 0 8px 15px rgba(114,162,228,0.6);
+      transform: scale(1.06);
+    }
+    .nav-links a:hover svg,
+    .nav-links a:focus-visible svg {
+      fill: #fff;
+    }
+    .nav-links a.active {
+      background: var(--cute-color-primary);
+      color: white;
+      font-weight: 700;
+      border-color: var(--cute-color-primary);
+      box-shadow: 0 8px 20px rgba(114,162,228,0.7);
+      transform: scale(1.1);
+      cursor: default;
+    }
+    .nav-links a.active svg {
+      fill: white;
+    }
+
+    /* Tooltip */
+    .nav-links a[data-tooltip]:hover::after,
+    .nav-links a[data-tooltip]:focus-visible::after {
+      content: attr(data-tooltip);
+      position: absolute;
+      left: 110%;
+      top: 50%;
+      transform: translateY(-50%);
+      background: var(--cute-color-primary);
+      color: #fff;
+      padding: 6px 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      border-radius: 14px;
+      white-space: nowrap;
+      box-shadow: 0 0 10px var(--cute-color-primary);
+      pointer-events: none;
+      opacity: 1;
+      transition: opacity 0.3s ease;
+      z-index: 10;
+      user-select: none;
+    }
+    .nav-links a[data-tooltip]::after {
+      opacity: 0;
+    }
+
+    /* Hamburger toggle for mobile */
+    .hamburger {
+      position: fixed;
+      top: 14px;
+      left: 14px;
+      width: 40px;
+      height: 36px;
+      z-index: 1100;
+      cursor: pointer;
+      display: none;
+      flex-direction: column;
+      justify-content: space-around;
+      padding: 6px;
+      user-select: none;
+      transition: filter 0.3s ease;
+    }
+    .hamburger:hover,
+    .hamburger:focus-visible {
+      filter: drop-shadow(0 0 8px var(--cute-color-primary));
+      outline: none;
+    }
+    .hamburger span {
+      display: block;
+      height: 4px;
+      width: 100%;
+      background: var(--cute-color-primary);
+      border-radius: 4px;
+      transition: all 0.3s ease;
+      transform-origin: center;
+    }
+    .hamburger.open span:nth-child(1) {
+      transform: rotate(45deg) translate(6px, 7px);
+    }
+    .hamburger.open span:nth-child(2) {
+      opacity: 0;
+    }
+    .hamburger.open span:nth-child(3) {
+      transform: rotate(-45deg) translate(7px, -7px);
+    }
+
+    /* Content */
+    main.content {
+      margin-left: 0;
+      padding: 100px 30px 80px;
+      max-width: 100vw;
+      transition: margin-left 0.35s ease;
+      color: #3a3a3a;
+      position: relative;
+      z-index: 10;
+      background: #e7f3fb;
+      border-radius: 30px 0 0 30px;
+      box-shadow: 0 12px 28px rgba(114, 162, 228, 0.3);
+      overflow-x: hidden;
+    }
+    main.content.mobile-expanded {
+      margin-left: 0;
+      border-radius: 0;
+      padding: 100px 20px 80px;
+    }
+
+    /* Sections */
+    section {
+      opacity: 0;
+      transform: translateY(40px);
+      transition: opacity 0.9s ease, transform 0.9s ease;
+      margin-bottom: 70px;
+      max-width: 720px;
+      margin-left: auto;
+      margin-right: auto;
+      padding: 0 15px;
+    }
+    section.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    section h1, section h2 {
+      color: var(--cute-color-primary);
+      font-weight: 800;
+      letter-spacing: 0.12em;
+      margin-bottom: 0.5rem;
+      user-select: text;
+      text-shadow: 1px 1px 3px rgba(114, 162, 228, 0.6);
+    }
+    section h1 {
+      font-size: 3.2rem;
+      margin-bottom: 0.3rem;
+      line-height: 1.1;
+    }
+    section h2 {
+      font-size: 2.4rem;
+      margin-top: 0;
+    }
+
+    /* Typing tagline */
+    #about .tagline {
+      font-family: 'Comic Neue', cursive;
+      font-weight: 400;
+      font-size: 1.3rem;
+      color: #5579a1;
+      height: 28px;
+      border-right: 2px solid var(--cute-color-primary);
+      white-space: nowrap;
+      overflow: hidden;
+      width: 280px;
+      animation: typing 3.6s steps(24) 1, blink 0.75s step-end infinite;
+      margin-bottom: 45px;
+      user-select: none;
+      text-shadow: 1px 1px 4px rgba(114, 162, 228, 0.7);
+    }
+    @keyframes typing {
+      from { width: 0 }
+      to { width: 280px }
+    }
+    @keyframes blink {
+      50% { border-color: transparent }
+    }
+
+    /* About text */
+    #about p {
+      font-weight: 400;
+      font-size: 1.1rem;
+      line-height: 1.6;
+      max-width: 620px;
+      color: #405670;
+      margin-bottom: 2rem;
+    }
+
+    /* Timeline items */
+    .timeline {
+      border-left: 4px solid var(--cute-color-primary);
+      margin-left: 15px;
+      padding-left: 25px;
+    }
+    .timeline-item {
+      margin-bottom: 2.5rem;
+      position: relative;
+      cursor: pointer;
+      transition: color 0.3s ease;
+      border-radius: 12px;
+      padding: 10px 14px;
+      background: #bbd4e5;
+      box-shadow: inset 1px 1px 6px #9bbddf;
+      user-select: text;
+    }
+    .timeline-item::before {
+      content: "";
+      position: absolute;
+      left: -35px;
+      top: 14px;
+      width: 26px;
+      height: 26px;
+      background: var(--cute-color-primary);
+      border-radius: 50%;
+      border: 4px solid var(--cute-color-secondary);
+      box-shadow: 0 0 12px var(--cute-color-secondary);
+      transition: background 0.3s ease, box-shadow 0.3s ease;
+    }
+    .timeline-item:hover {
+      color: #336699;
+      background: #d4e5f9;
+      box-shadow: 0 0 14px var(--cute-color-primary), inset 1px 1px 14px #aac5e7;
+    }
+    .timeline-item:hover::before {
+      background: var(--cute-color-secondary);
+      box-shadow: 0 0 26px var(--cute-color-secondary);
+    }
+    .timeline-item h3 {
+      margin: 0 0 6px 0;
+      font-weight: 700;
+      color: #5579a1;
+    }
+    .timeline-item span {
+      font-style: italic;
+      font-size: 0.9rem;
+      color: #7f9dbb;
+    }
+    .timeline-item p {
+      margin-top: 5px;
+      font-weight: 400;
+      color: #5579a1;
+    }
+
+    /* Skills */
+    .skill {
+      margin-bottom: 1.8rem;
+      user-select: none;
+    }
+    .skill-name {
+      font-weight: 700;
+      margin-bottom: 8px;
+      color: var(--cute-color-primary);
+      letter-spacing: 0.08em;
+    }
+    .skill-bar {
+      background: #c8dff5;
+      border-radius: 22px;
+      overflow: hidden;
+      height: 24px;
+      box-shadow: inset 0 0 10px #9bbeea;
+      position: relative;
+    }
+    .skill-fill {
+      height: 100%;
+      width: 0;
+      background: linear-gradient(90deg, var(--cute-color-primary), var(--cute-color-secondary));
+      box-shadow: 0 0 15px var(--cute-color-primary);
+      border-radius: 22px;
+      transition: width 1.7s cubic-bezier(0.42, 0, 0.58, 1);
+      position: relative;
+    }
+    .skill-fill::after {
+      content: attr(data-percent) '%';
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: #163852;
+      font-weight: 700;
+      text-shadow: 0 0 4px #8eb4e3;
+      user-select: none;
+    }
+    .skill-bar:hover .skill-fill {
+      filter: drop-shadow(0 0 8px var(--cute-color-secondary));
+      transition: width 1.5s ease;
+    }
+
+    /* Projects */
+    .projects-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit,minmax(280px, 1fr));
+      gap: 2.5rem;
+    }
+    .project-card {
+      background: #d7e6f8;
+      padding: 2rem;
+      border-radius: 30px;
+      box-shadow: 0 10px 25px #aac5e7;
+      cursor: pointer;
+      transition: transform 0.35s ease, box-shadow 0.5s ease;
+      position: relative;
+      overflow: hidden;
+      user-select: none;
+      touch-action: manipulation;
+    }
+    .project-card h4 {
+      margin-top: 0; margin-bottom: 0.8rem;
+      color: var(--cute-color-primary);
+      font-weight: 700;
+      letter-spacing: 0.05em;
+      user-select: text;
+    }
+    .project-card p {
+      font-weight: 400;
+      font-size: 1rem;
+      color: #5579a1;
+      min-height: 48px;
+      margin-bottom: 1.3rem;
+      user-select: text;
+    }
+    .project-links {
+      display: flex;
+      gap: 20px;
+      font-size: 1.6rem;
+    }
+    .project-links a {
+      color: var(--cute-color-primary);
+      transition: color 0.3s ease;
+      text-decoration: none;
+      user-select: none;
+      filter: drop-shadow(0 0 5px var(--cute-color-secondary));
+    }
+    .project-links a:hover {
+      color: var(--cute-color-secondary);
+      filter: drop-shadow(0 0 15px var(--cute-color-secondary));
+    }
+    .project-card:hover {
+      transform: scale(1.07);
+      box-shadow: 0 0 35px var(--cute-color-primary), 0 0 70px var(--cute-color-secondary);
+      z-index: 5;
+    }
+
+    /* Contact */
+    #contact p {
+      margin-bottom: 1.5rem;
+      font-weight: 400;
+      font-size: 1.15rem;
+      color: #355a83;
+    }
+    #contact a {
+      font-size: 2.4rem;
+      margin-right: 30px;
+      color: var(--cute-color-primary);
+      filter: drop-shadow(0 0 7px var(--cute-color-secondary));
+      transition: color 0.3s ease;
+      user-select: none;
+    }
+    #contact a:hover {
+      color: var(--cute-color-secondary);
+      filter: drop-shadow(0 0 20px var(--cute-color-secondary));
+    }
+
+    /* Modal Styling */
+    .modal {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100vw; height: 100vh;
+      background: rgba(43, 71, 105, 0.9);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.4s ease;
+      z-index: 2000;
+      backdrop-filter: blur(8px);
+      border-radius: 20px;
+    }
+    .modal.active {
+      opacity: 1;
+      pointer-events: all;
+    }
+    .modal-content {
+      background: #ddeafc;
+      padding: 2.8rem 3.5rem;
+      border-radius: 30px;
+      max-width: 600px;
+      width: 90%;
+      box-shadow: 0 10px 30px rgba(43, 71, 105, 0.35);
+      position: relative;
+      color: #2e4c6d;
+      font-family: 'Comic Neue', cursive, sans-serif;
+      animation: popIn 0.35s ease forwards;
+      max-height: 85vh;
+      overflow-y: auto;
+      user-select: text;
+      border: 3px solid var(--cute-color-primary);
+      border-radius: 1.2rem;
+    }
+    @keyframes popIn {
+      from {
+        opacity: 0;
+        transform: scale(0.85);
+      } to {
+        opacity: 1;
+        transform: scale(1);
+      }
+    }
+    .modal-content h3 {
+      margin-top: 0;
+      color: var(--cute-color-primary);
+      font-weight: 800;
+      margin-bottom: 0.7rem;
+      letter-spacing: 0.08em;
+      user-select: none;
+      text-shadow: 1px 1px 4px var(--cute-color-secondary);
+    }
+    .modal-content p {
+      font-weight: 400;
+      line-height: 1.5;
+      font-size: 1.15rem;
+      color: #3a3a3a;
+    }
+    .modal-content .modal-time {
+      font-style: italic;
+      color: #576f92;
+      margin-bottom: 1.2rem;
+      user-select: none;
+    }
+    .modal-links a {
+      color: var(--cute-color-primary);
+      text-decoration: underline;
+      margin-right: 1.8rem;
+      font-size: 1.1rem;
+      display: inline-block;
+      margin-bottom: 0.8rem;
+      transition: color 0.3s ease;
+      user-select: none;
+      font-weight: 700;
+    }
+    .modal-links a:hover {
+      color: var(--cute-color-secondary);
+    }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      right: 22px;
+      font-size: 34px;
+      font-weight: 700;
+      color: var(--cute-color-primary);
+      background: transparent;
+      border: none;
+      cursor: pointer;
+      user-select: none;
+      transition: color 0.3s ease;
+      outline-offset: 6px;
+      line-height: 1;
+    }
+    .modal-close:hover,
+    .modal-close:focus {
+      color: var(--cute-color-secondary);
+      outline: none;
+    }
+
+    /* Responsive layout */
+    @media (max-width: 900px) {
+      main.content {
+        margin-left: 0 !important;
+        padding: 100px 25px 80px;
+        border-radius: 0;
+        max-width: 100vw;
+      }
+      .sidebar-nav {
+        transform: translateX(calc(-100%));
+        border-radius: 0;
+      }
+      .sidebar-nav.collapsed {
+        transform: translateX(0);
+        box-shadow: 4px 0 24px rgba(114, 162, 228, 0.6);
+      }
+      .hamburger {
+        display: flex;
+      }
+      body.nav-expanded {
+        overflow: hidden;
+      }
+      main.content.mobile-expanded {
+        margin-left: 0 !important;
+        border-radius: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="bg-canvas" aria-hidden="true"></canvas>
+
+<!-- Hamburger menu toggle for mobile -->
+<button class="hamburger" aria-label="Toggle navigation menu" aria-expanded="false" aria-controls="sidebarNav" id="hamburgerBtn">
+  <span></span>
+  <span></span>
+  <span></span>
+</button>
+
+<!-- Navigation sidebar -->
+<nav class="sidebar-nav collapsed" aria-label="Primary Navigation" id="sidebarNav">
+  <div class="sidebar-header">
+    <svg class="hippo-svg" viewBox="0 0 512 512" aria-hidden="true" focusable="false" xmlns="http://www.w3.org/2000/svg" >
+      <path d="M336 256c0-30.9-25.1-56-56-56-5.1 0-10.1.7-14.8 2-12-32.5-44.3-55-81.2-55-11 0-21.4 2.8-30.5 7.8-11.1-3.7-22.9-5.7-35-5.7-35.3 0-64 28.7-64 64v96c0 17.7 14.3 32 32 32h11c21.1 0 39-17.1 40-38.5 9 5.7 19.7 9 31 9 25.8 0 47-21 47-47 0-14-6.6-26.3-16.8-34.5 11-12.4 26.6-21 44.8-21s33.8 8.6 44.8 21c-10.2 8.3-16.8 20.5-16.8 34.5 0 17.5 14.2 31.8 31.8 32h4.2c21.5 0 39-17.1 40-38.5zM166.3 176c15.3 0 27.7 12.4 27.7 27.7S181.6 231.3 166.3 231.3 138.6 218.9 138.6 203.7 151 176 166.3 176zm168.8 0c15.3 0 27.7 12.4 27.7 27.7S350.4 231.3 335.1 231.3s-27.7-12.4-27.7-27.7 12.4-27.6 27.7-27.6z"/>
+    </svg>
+    <div class="name">ADITI</div>
+    <div class="title">Student</div>
+  </div>
+  <div class="nav-links" role="menubar">
+    <a href="#about" role="menuitem" tabindex="0" data-tooltip="About Me" aria-current="page">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10"/></svg> About
+    </a>
+    <a href="#experience" role="menuitem" tabindex="-1" data-tooltip="Work Experience">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor" aria-hidden="true"><path d="M16 6H8v2h8zM8 10h8v2H8zM8 14h8v2H8z"/><path d="M20 2H4c-1.1 0-2 .9-2 2v16a2 2 0 002 2h16a2 2 0 002-2V4c0-1.1-.9-2-2-2zm0 18H4v-2h16v2zm0-4H4v-2h16v2zm0-4H4v-2h16v2z"/></svg> Experience
+    </a>
+    <a href="#education" role="menuitem" tabindex="-1" data-tooltip="Education">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor" aria-hidden="true"><path d="M12 4l7 4-7 4-7-4 7-4zM4 13.18V18h16v-4.82L12 20 4 13.18z"/></svg> Education
+    </a>
+    <a href="#skills" role="menuitem" tabindex="-1" data-tooltip="Skills">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor" aria-hidden="true"><path d="M12 15.5c1.77 0 3.3-1.08 3.87-2.72l-2.19-.5-3 3V12l-2-.5c-.35.96-1 1.76-1.79 2.22 1.04.4 2.2.78 3.61.78zM6.18 16.17c.3.27.67.48 1.08.59l.02-.09v-1.48L6 14.8l.18 1.37zM13 3c-3.87 0-7 3.13-7 7 0 1.17.3 2.26.82 3.21L4 16v6h12v-3.52C17.6 17.06 15.81 15.5 13 15.5c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.17.75 4.16 1.93L17.4 5h3v2l-2.41-.92C17.25 5.38 15.2 3 13 3z"/></svg> Skills
+    </a>
+    <a href="#projects" role="menuitem" tabindex="-1" data-tooltip="Projects">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor" aria-hidden="true"><path d="M21 11.5l-2-3.46-4.35 2.5 2.81 4.44L21 11.5zM16.4 19h-6.17l-2.37-3H2v-2h7.4l-2-3h13l-3.6 6z"/></svg> Projects
+    </a>
+    <a href="#contact" role="menuitem" tabindex="-1" data-tooltip="Contact">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor" aria-hidden="true"><path d="M20 4H4c-1.1 0-2 .9-2 2v12a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V6c0-1.1-.9-2-2-2zM4 8l8 5 8-5v-2l-8 5-8-5v2z"/></svg> Contact
+    </a>
+    <a href="#extracurricular" role="menuitem" tabindex="-1" data-tooltip="Extracurriculars">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor" aria-hidden="true"><circle cx="12" cy="12" r="10"/></svg> Extracurriculars
+    </a>
+    <a href="#hobbies" role="menuitem" tabindex="-1" data-tooltip="Hobbies">
+      <svg xmlns="http://www.w3.org/2000/svg" height="24" width="24" fill="currentColor" aria-hidden="true"><path d="M12 2a10 10 0 0 0-7.4 17l.01-.01L12 18l7.39 1.99c-.31-.21-1.64-2.31-1.64-6.43A10 10 0 0 0 12 2zm0 14a4 4 0 1 1 0-8 4 4 0 0 1 0 8z"/></svg> Hobbies
+    </a>
+  </div>
+</nav>
+
+<main class="content" id="mainContent" tabindex="0">
+
+  <!-- Sections -->
+  <section id="about" tabindex="-1" aria-labelledby="aboutTitle" class="visible">
+    <h1 id="aboutTitle">ADITI</h1>
+    <div aria-label="Animated tagline" class="tagline" aria-live="polite" role="text">Student</div>
+    <p>
+      Location: 279 ; Sector 91 Phase 2, Faridabad, Haryana<br/>
+      Email: bcomh25176@dr.du.ac.in<br/>
+      Phone: 7678324031
+    </p>
+  </section>
+
+  <section id="experience" tabindex="-1" aria-labelledby="experienceTitle">
+    <h2 id="experienceTitle">Experience</h2>
+    <div class="timeline">
+      <article class="timeline-item" tabindex="0" role="button" aria-haspopup="dialog" aria-label="Part-Time Primary Class Tutor experience details" data-title="Part-Time Primary Class Tutor" data-desc="Teach English and Mathematics to students aged 5 - 15. Plan and execute engaging lesson plans, boosting student performance and confidence." data-time="Self-Employed, Haryana | Jan 2024 - Present">
+        <h3>Part-Time Primary Class Tutor</h3>
+        <span>Self-Employed, Haryana | Jan 2024 - Present</span>
+        <p>Teach English and Mathematics to students aged 5 - 15. Plan and execute engaging lesson plans, boosting student performance and confidence.</p>
+      </article>
+    </div>
+  </section>
+
+  <section id="education" tabindex="-1" aria-labelledby="educationTitle">
+    <h2 id="educationTitle">Education</h2>
+    <div class="timeline">
+      <article class="timeline-item" tabindex="0" role="button" aria-haspopup="dialog" aria-label="B.Com Honours education details" data-title="B.Com Honours (1st Year, 2nd Semester)" data-desc="" data-time="Delhi University | 2024 - Present">
+        <h3>B.Com Honours (1st Year, 2nd Semester)</h3>
+        <span>Delhi University | 2024 - Present</span>
+      </article>
+      <article class="timeline-item" tabindex="0" role="button" aria-haspopup="dialog" aria-label="12th CBSE education details" data-title="12th CBSE - 91%" data-desc="" data-time="Ashok Memorial Public School | 2023 - 2024">
+        <h3>12th CBSE - 91%</h3>
+        <span>Ashok Memorial Public School | 2023 - 2024</span>
+      </article>
+      <article class="timeline-item" tabindex="0" role="button" aria-haspopup="dialog" aria-label="10th CBSE education details" data-title="10th CBSE - 88%" data-desc="" data-time="Ashok Memorial Public School | 2021 - 2022">
+        <h3>10th CBSE - 88%</h3>
+        <span>Ashok Memorial Public School | 2021 - 2022</span>
+      </article>
+    </div>
+  </section>
+
+  <section id="skills" tabindex="-1" aria-labelledby="skillsTitle">
+    <h2 id="skillsTitle">Skills</h2>
+    <div aria-live="polite">
+      <div class="skill" aria-label="Canva skill">
+        <div class="skill-name">Canva</div>
+        <div class="skill-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="6" tabindex="0" title="Canva 6%">
+          <div class="skill-fill" data-percent="6"></div>
+        </div>
+      </div>
+      <div class="skill" aria-label="Teamwork skill">
+        <div class="skill-name">Teamwork</div>
+        <div class="skill-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="6" tabindex="0" title="Teamwork 6%">
+          <div class="skill-fill" data-percent="6"></div>
+        </div>
+      </div>
+      <div class="skill" aria-label="Time Management skill">
+        <div class="skill-name">Time Management</div>
+        <div class="skill-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="6" tabindex="0" title="Time Management 6%">
+          <div class="skill-fill" data-percent="6"></div>
+        </div>
+      </div>
+      <div class="skill" aria-label="MS Office skill">
+        <div class="skill-name">MS Office</div>
+        <div class="skill-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="6" tabindex="0" title="MS Office 6%">
+          <div class="skill-fill" data-percent="6"></div>
+        </div>
+      </div>
+      <div class="skill" aria-label="Communication skill">
+        <div class="skill-name">Communication</div>
+        <div class="skill-bar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="6" tabindex="0" title="Communication 6%">
+          <div class="skill-fill" data-percent="6"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="extracurricular" tabindex="-1" aria-labelledby="extracurricularTitle">
+    <h2 id="extracurricularTitle">Extracurricular Activities</h2>
+    <ul>
+      <li>Member of NSS (National Service Scheme) – Actively participating in community service and volunteering.</li>
+      <li>Volunteered for Cyber Cell annual fest ‘ENCRYPT’ – Active member of management and marketing team; involved in event coordination and promotion.</li>
+      <li>Volunteer for Ehsaas for humanity SRCC – Designed Instagram posts for their page on menstrual health and myths.</li>
+    </ul>
+  </section>
+
+  <section id="hobbies" tabindex="-1" aria-labelledby="hobbiesTitle">
+    <h2 id="hobbiesTitle">Hobbies</h2>
+    <ul>
+      <li>Reading</li>
+      <li>Playing Guitar</li>
+      <li>Talking to Jai</li>
+    </ul>
+  </section>
+
+  <section id="contact" tabindex="-1" aria-labelledby="contactTitle">
+    <h2 id="contactTitle">Contact</h2>
+    <p>I’m open to new opportunities and collaborations. Reach out via email or phone!</p>
+    <div>
+      <a href="mailto:bcomh25176@dr.du.ac.in" aria-label="Send email" title="Email">&#9993;</a>
+      <a href="tel:7678324031" aria-label="Call phone number" title="Phone">&#128222;</a>
+    </div>
+  </section>
+
+</main>
+
+<!-- Modal -->
+<div class="modal" id="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle" aria-describedby="modalDesc" tabindex="-1">
+  <div class="modal-content">
+    <button class="modal-close" aria-label="Close modal" id="modalClose">&times;</button>
+    <h3 id="modalTitle"></h3>
+    <p class="modal-time" id="modalTime"></p>
+    <p id="modalDesc"></p>
+    <div class="modal-links" id="modalLinks"></div>
+  </div>
+</div>
+
+<script>
+  // === Bubble float background ===
+
+  const canvas = document.getElementById('bg-canvas');
+  const ctx = canvas.getContext('2d');
+  let bubblesArray = [];
+  const maxBubbles = 60;
+
+  function resizeCanvas() {
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
+  }
+  window.addEventListener('resize', resizeCanvas);
+  resizeCanvas();
+
+  class Bubble {
+    constructor() {
+      this.radius = 10 + Math.random() * 24;
+      this.x = Math.random() * canvas.width;
+      this.y = canvas.height + this.radius + Math.random() * 300;
+      this.speed = 0.4 + Math.random() * 0.7;
+      this.opacity = 0.06 + Math.random() * 0.15;
+      this.phase = Math.random() * Math.PI * 2;
+      this.xAmplitude = 12 + Math.random() * 15;
+      this.color = `rgba(117, 155, 190, ${this.opacity.toFixed(2)})`;
+    }
+
+    update() {
+      this.y -= this.speed;
+      this.x += Math.sin(this.phase) * 0.25;
+      this.phase += 0.02;
+
+      if(this.y < -this.radius) {
+        this.y = canvas.height + this.radius + Math.random() * 150;
+        this.x = Math.random() * canvas.width;
+        this.opacity = 0.06 + Math.random() * 0.15;
+        this.color = `rgba(117, 155, 190, ${this.opacity.toFixed(2)})`;
+        this.speed = 0.4 + Math.random() * 0.7;
+        this.radius = 8 + Math.random() * 22;
+      }
+    }
+
+    draw() {
+      let gradient = ctx.createRadialGradient(this.x, this.y, this.radius*0.15, this.x, this.y, this.radius);
+      gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+      gradient.addColorStop(1, this.color);
+
+      ctx.fillStyle = gradient;
+      ctx.beginPath();
+      ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
+      ctx.fill();
+    }
+  }
+
+  function initBubbles() {
+    bubblesArray = [];
+    for(let i=0; i < maxBubbles; i++) {
+      bubblesArray.push(new Bubble());
+    }
+  }
+  initBubbles();
+
+  function animateBubbles() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    bubblesArray.forEach(bubble => {
+      bubble.update();
+      bubble.draw();
+    });
+    requestAnimationFrame(animateBubbles);
+  }
+  animateBubbles();
+
+
+  // Navigation & modal scripts
+
+  const sidebarNav = document.getElementById("sidebarNav");
+  const hamburgerBtn = document.getElementById("hamburgerBtn");
+  const navLinks = document.querySelectorAll(".nav-links a");
+  const sections = document.querySelectorAll("section");
+  const modal = document.getElementById("modal");
+  const modalTitle = document.getElementById("modalTitle");
+  const modalTime = document.getElementById("modalTime");
+  const modalDesc = document.getElementById("modalDesc");
+  const modalLinks = document.getElementById("modalLinks");
+  const modalCloseBtn = document.getElementById("modalClose");
+  const mainContent = document.getElementById("mainContent");
+
+  function toggleSidebar() {
+    if(sidebarNav.classList.contains("collapsed")) {
+      sidebarNav.classList.remove("collapsed");
+      hamburgerBtn.classList.add("open");
+      hamburgerBtn.setAttribute("aria-expanded", "true");
+      document.body.classList.add("nav-expanded");
+      mainContent.classList.add("mobile-expanded");
+    } else {
+      sidebarNav.classList.add("collapsed");
+      hamburgerBtn.classList.remove("open");
+      hamburgerBtn.setAttribute("aria-expanded", "false");
+      document.body.classList.remove("nav-expanded");
+      mainContent.classList.remove("mobile-expanded");
+    }
+  }
+  hamburgerBtn.addEventListener("click", toggleSidebar);
+
+  navLinks.forEach(link => {
+    link.addEventListener("click", () => {
+      if(window.innerWidth <= 900) {
+        toggleSidebar();
+      }
+    });
+  });
+
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(entry => {
+      if(entry.isIntersecting) {
+        entry.target.classList.add("visible");
+        if(entry.target.id === "skills") animateSkills();
+        navLinks.forEach(link => {
+          link.classList.toggle(
+            "active",
+            link.getAttribute("href").slice(1) === entry.target.id
+          );
+          link.setAttribute("aria-current",
+            link.classList.contains("active") ? "page" : "false"
+          );
+        });
+      }
+    });
+  }, { threshold: 0.55 });
+
+  sections.forEach(section => observer.observe(section));
+
+  navLinks.forEach(link => {
+    link.addEventListener("click", e => {
+      e.preventDefault();
+      const targetId = link.getAttribute("href").slice(1);
+      const targetEl = document.getElementById(targetId);
+      if(targetEl) {
+        const yOffset = -65;
+        const y = targetEl.getBoundingClientRect().top + window.pageYOffset + yOffset;
+        window.scrollTo({top: y, behavior: "smooth"});
+        link.focus();
+      }
+    });
+  });
+
+  function animateSkills() {
+    const skillFills = document.querySelectorAll(".skill-fill");
+    skillFills.forEach(fill => {
+      const percent = fill.dataset.percent;
+      fill.style.width = "0%";
+      setTimeout(() => { fill.style.width = percent + "%"; }, 200);
+    });
+  }
+
+  function openModal(title, desc, time = "", links = null) {
+    modalTitle.textContent = title;
+    modalDesc.textContent = desc;
+    modalTime.textContent = time;
+    modalLinks.innerHTML = "";
+    if(links) {
+      for(const [key, url] of Object.entries(links)) {
+        const linkAnchor = document.createElement("a");
+        linkAnchor.href = url;
+        linkAnchor.target = "_blank";
+        linkAnchor.rel = "noopener noreferrer";
+        linkAnchor.textContent = key;
+        modalLinks.appendChild(linkAnchor);
+      }
+    }
+    modal.classList.add("active");
+    modal.focus();
+  }
+
+  modalCloseBtn.addEventListener("click", () => {
+    modal.classList.remove("active");
+  });
+  modal.addEventListener("click", e => {
+    if(e.target === modal) {
+      modal.classList.remove("active");
+    }
+  });
+  document.addEventListener("keydown", e => {
+    if(e.key === "Escape" && modal.classList.contains("active")) {
+      modal.classList.remove("active");
+    }
+  });
+
+  document.querySelectorAll(".timeline-item").forEach(item => {
+    item.addEventListener("click", () => {
+      openModal(item.dataset.title, item.dataset.desc, item.dataset.time);
+    });
+    item.addEventListener("keydown", e => {
+      if(e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        openModal(item.dataset.title, item.dataset.desc, item.dataset.time);
+      }
+    });
+  });
+
+  document.querySelectorAll(".project-card").forEach(card => {
+    card.addEventListener("click", () => {
+      let links = null;
+      try {
+        links = JSON.parse(card.dataset.links);
+      } catch {}
+      openModal(card.dataset.title, card.dataset.desc, "", links);
+    });
+    card.addEventListener("keydown", e => {
+      if(e.key === "Enter" || e.key === " ") {
+        e.preventDefault();
+        let links = null;
+        try {
+          links = JSON.parse(card.dataset.links);
+        } catch {}
+        openModal(card.dataset.title, card.dataset.desc, "", links);
+      }
+    });
+  });
+
+  window.addEventListener("load", () => {
+    const skillsSection = document.getElementById("skills");
+    const rect = skillsSection.getBoundingClientRect();
+    if(rect.top < window.innerHeight) {
+      animateSkills();
+    }
+  });
+</script>
+
+</body>
+</html>
+
+
